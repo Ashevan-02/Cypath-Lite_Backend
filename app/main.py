@@ -16,7 +16,6 @@ from app.api.endpoints.runs import router as runs_router
 from app.api.endpoints.users import router as users_router
 from app.api.endpoints.violations import router as violations_router
 from app.api.endpoints.videos import router as videos_router
-from app.api.middleware.auth import JWTAuthMiddleware
 from app.core.config import settings
 
 
@@ -31,7 +30,6 @@ def _configure_logging() -> None:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     _configure_logging()
-    # Ensure storage folders exist
     for p in (settings.videos_dir, settings.frames_dir, settings.evidence_dir, settings.reports_dir, settings.images_dir):
         p.mkdir(parents=True, exist_ok=True)
     yield
@@ -54,15 +52,17 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Development-friendly CORS (allow all). Restrict origins in production.
+    # CORSMiddleware is the only middleware — auth is enforced by FastAPI
+    # dependencies on each endpoint. BaseHTTPMiddleware (JWTAuthMiddleware)
+    # was removed because it swallowed exceptions before CORS headers could
+    # be added, causing browser CORS blocks on error responses.
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.add_middleware(JWTAuthMiddleware)
 
     @app.get("/health")
     async def health() -> dict[str, str]:
@@ -87,4 +87,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-

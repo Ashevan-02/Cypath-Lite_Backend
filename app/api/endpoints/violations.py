@@ -29,6 +29,22 @@ async def get_violation(violation_id: int, _user=Depends(get_current_active_user
     return violation
 
 
+@router.post("/violations/{violation_id}/flag-false-positive", response_model=ViolationResponse)
+async def flag_false_positive(violation_id: int, _user=Depends(get_current_active_user)) -> Any:
+    v = violation_service.flag_false_positive(violation_id=violation_id, user_id=_user.id)
+    if not v:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Violation not found")
+    return v
+
+
+@router.post("/violations/{violation_id}/verify", response_model=ViolationResponse)
+async def verify_violation(violation_id: int, _user=Depends(get_current_active_user)) -> Any:
+    v = violation_service.verify_violation(violation_id=violation_id, user_id=_user.id)
+    if not v:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Violation not found")
+    return v
+
+
 @router.get("/runs/{run_id}/analytics", response_model=ViolationAnalyticsResponse)
 async def get_run_analytics(run_id: int, _user=Depends(get_current_active_user)) -> Any:
     return analytics_service.get_run_analytics(run_id=run_id, user_id=_user.id)

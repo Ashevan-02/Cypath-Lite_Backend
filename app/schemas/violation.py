@@ -21,6 +21,8 @@ class ViolationResponse(BaseModel):
     confidence: float
     bounding_box: Optional[list] = None
     evidence_path: Optional[str] = None
+    is_false_positive: bool = False
+    verified: bool = False
     created_at: datetime
 
 
